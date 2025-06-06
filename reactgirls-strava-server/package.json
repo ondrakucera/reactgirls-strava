@@ -9,7 +9,13 @@
 		"dev": "tsx watch src/index.ts",
 		"lint": "eslint src --ext .ts",
 		"format": "prettier --write src/**/*.ts",
-		"db:migrate": "node dist/database/migrate.js"
+		"db:migrate": "node dist/database/migrate.js",
+		"db:setup": "./scripts/dev-setup.sh",
+		"db:reset": "./scripts/dev-reset.sh",
+		"db:start": "docker-compose up -d",
+		"db:stop": "docker-compose down",
+		"db:logs": "docker-compose logs -f postgres",
+		"db:utils": "tsx src/utils/dbUtils.ts"
 	},
 	"dependencies": {
 		"express": "^4.18.2",

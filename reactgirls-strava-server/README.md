@@ -72,19 +72,59 @@ STRAVA_CLUB_ID=your_club_id
      }'
    ```
 
-## Installation & Setup
+## Local Development Setup
+
+### Prerequisites
+- Docker and Docker Compose
+- Node.js >= 18.0.0
+
+### Quick Start
+
+```bash
+# 1. Set up the complete development environment (one command!)
+npm run db:setup
+
+# 2. Start the development server
+npm run dev
+```
+
+The `db:setup` script will:
+- Create a `.env` file with local database settings
+- Start PostgreSQL and pgAdmin containers
+- Install dependencies
+- Run database migrations
+- Display access information
+
+### Manual Setup (Alternative)
 
 ```bash
 # Install dependencies
 npm install
 
-# Run database migrations
+# Start database
+npm run db:start
+
+# Run migrations
 npm run build
 npm run db:migrate
 
 # Start development server
 npm run dev
 ```
+
+### Database Access
+
+**PostgreSQL Connection:**
+- Host: `localhost`
+- Port: `5432`
+- Database: `reactgirls_strava_dev`
+- Username: `developer`
+- Password: `devpassword`
+
+**pgAdmin Web Interface:**
+- URL: http://localhost:5050
+- Email: `admin@reactgirls.com`
+- Password: `adminpassword`
 
 ## API Endpoints
 
@@ -134,6 +174,7 @@ The server runs a cron job every 15 minutes that:
 
 ## Development Commands
 
+### Server Commands
 ```bash
 # Start development server with hot reload
 npm run dev
@@ -144,14 +185,36 @@ npm run build
 # Start production server
 npm start
 
-# Run database migrations
-npm run db:migrate
-
 # Lint code
 npm run lint
 
 # Format code  
 npm run format
+```
+
+### Database Commands
+```bash
+# Complete development setup (one command)
+npm run db:setup
+
+# Start/stop database services
+npm run db:start
+npm run db:stop
+
+# View database logs
+npm run db:logs
+
+# Reset database (clear all data and restart)
+npm run db:reset
+
+# Run database migrations
+npm run db:migrate
+
+# Database utilities
+npm run db:utils check   # Check connection
+npm run db:utils stats   # Show statistics
+npm run db:utils clear   # Clear all data
+npm run db:utils seed    # Add sample data
 ```
 
 ## Railway Deployment
