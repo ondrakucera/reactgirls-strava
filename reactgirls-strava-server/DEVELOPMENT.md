@@ -102,9 +102,9 @@ curl http://localhost:3001/admin/sync-stats
      -H "Content-Type: application/json" \
      -d '{"access_token":"...","refresh_token":"...","expires_at":123456789}'
    ```
-5. Trigger a sync:
+5. Test sync locally:
    ```bash
-   curl -X POST http://localhost:3001/admin/trigger-sync
+   npm run sync:dev
    ```
 
 ## 🐛 Troubleshooting
@@ -181,7 +181,7 @@ npm run db:setup
 1. **Use sample data** for UI development: `npm run db:utils seed`
 2. **Monitor database** with pgAdmin while developing
 3. **Check sync stats** frequently: `curl localhost:3001/admin/sync-stats`
-4. **Test manually** before setting up real Strava integration
+4. **Test sync locally** before deploying: `npm run sync:dev`
 5. **Use database utilities** to inspect and manipulate data easily
 
 ## 🚨 Important Notes
@@ -190,4 +190,5 @@ npm run db:setup
 - Database data persists between restarts (stored in Docker volumes)
 - pgAdmin settings are saved in Docker volumes too
 - Real Strava API has rate limits - use mock data for heavy testing
-- The cron job runs every 15 minutes in development too
+- In production, sync runs via Railway cron (separate from web server)
+- Use `npm run sync:dev` for local testing of sync functionality

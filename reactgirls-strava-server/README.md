@@ -134,8 +134,7 @@ npm run dev
 - **GET** `/admin/sync-stats` - Data synchronization statistics
 
 ### Admin Management
-- **POST** `/admin/init-oauth` - Initialize OAuth tokens
-- **POST** `/admin/trigger-sync` - Manually trigger data sync
+- **POST** `/admin/init-oauth` - Initialize OAuth tokens (setup only)
 
 ### Data API (Future)
 - **GET** `/api` - API status and information
@@ -158,7 +157,7 @@ npm run dev
 
 ## Automated Data Sync
 
-The server runs a cron job every 15 minutes that:
+Railway runs a dedicated cron job every 15 minutes that:
 
 1. **Fetches club members** from Strava API
 2. **Updates member database** with latest information
@@ -167,10 +166,11 @@ The server runs a cron job every 15 minutes that:
 5. **Handles token refresh** automatically
 
 ### Sync Schedule
-- **Frequency**: Every 15 minutes
-- **Initial sync**: 30 seconds after server start
+- **Frequency**: Every 15 minutes (Railway cron)
+- **Isolation**: Runs as separate service from web server
 - **Rate limiting**: 200ms delay between member requests
 - **Error handling**: Continues with other members if one fails
+- **Reliability**: Independent of web server uptime
 
 ## Development Commands
 
@@ -217,6 +217,15 @@ npm run db:utils clear   # Clear all data
 npm run db:utils seed    # Add sample data
 ```
 
+### Sync Commands
+```bash
+# Test sync locally (development)
+npm run sync:dev
+
+# Production sync (used by Railway cron)
+npm run sync
+```
+
 ## Railway Deployment
 
 ### Database Setup
@@ -250,8 +259,8 @@ curl http://localhost:3001/admin/sync-stats
 # Check database status
 curl http://localhost:3001/admin/db-status
 
-# Trigger manual sync
-curl -X POST http://localhost:3001/admin/trigger-sync
+# Test sync locally (development only)
+npm run sync:dev
 ```
 
 ### Logs

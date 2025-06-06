@@ -1,0 +1,14 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+startCommand = "npm start"
+
+[[services]]
+name = "strava-sync"
+type = "cron"
+schedule = "*/15 * * * *"
+command = "npm run sync"

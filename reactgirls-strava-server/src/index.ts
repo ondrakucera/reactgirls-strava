@@ -4,8 +4,8 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import pool from "./database/connection";
 import createTables from "./database/migrate";
-import JobScheduler from "./jobs/scheduler";
 import StravaClient from "./services/stravaClient";
+import DataSyncService from "./services/dataSyncService";
 
 // Load environment variables
 dotenv.config();
@@ -13,9 +13,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize services
-const jobScheduler = new JobScheduler();
+// Initialize services for admin endpoints
 const stravaClient = new StravaClient();
+const dataSyncService = new DataSyncService();
 
 // Middleware
 app.use(helmet());
@@ -55,27 +55,14 @@ app.get("/api", (req, res) => {
 	});
 });
 
-// Admin endpoints for monitoring and management
+// Admin endpoints for monitoring (read-only)
 app.get("/admin/sync-stats", async (req, res) => {
 	try {
-		const stats = await jobScheduler.getSyncStats();
+		const stats = await dataSyncService.getSyncStats();
 		res.json(stats);
 	} catch (error) {
 		console.error("Error fetching sync stats:", error);
 		res.status(500).json({ error: "Failed to fetch sync statistics" });
-	}
-});
-
-app.post("/admin/trigger-sync", async (req, res) => {
-	try {
-		const stats = await jobScheduler.triggerSync();
-		res.json({
-			message: "Sync triggered successfully",
-			stats,
-		});
-	} catch (error) {
-		console.error("Error triggering sync:", error);
-		res.status(500).json({ error: "Failed to trigger sync" });
 	}
 });
 
@@ -98,7 +85,7 @@ app.get("/admin/db-status", async (req, res) => {
 	}
 });
 
-// OAuth initialization endpoint (for initial setup)
+// OAuth initialization endpoint (for initial setup only)
 app.post("/admin/init-oauth", async (req, res) => {
 	try {
 		const { access_token, refresh_token, expires_at } = req.body;
@@ -143,14 +130,12 @@ async function startServer() {
 		console.log("🔧 Initializing database...");
 		await createTables();
 
-		console.log("⏰ Starting job scheduler...");
-		jobScheduler.startScheduler();
-
 		// Start server
 		app.listen(PORT, () => {
 			console.log(`🚀 Server is running on port ${PORT}`);
 			console.log(`📍 Health check available at http://localhost:${PORT}/health`);
 			console.log(`🔧 Admin panel available at http://localhost:${PORT}/admin`);
+			console.log(`⏰ Data sync managed by Railway cron jobs`);
 			console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
 		});
 	} catch (error) {
@@ -162,14 +147,12 @@ async function startServer() {
 // Graceful shutdown
 process.on("SIGTERM", () => {
 	console.log("🛑 Received SIGTERM signal, shutting down gracefully...");
-	jobScheduler.stopScheduler();
 	pool.end();
 	process.exit(0);
 });
 
 process.on("SIGINT", () => {
 	console.log("🛑 Received SIGINT signal, shutting down gracefully...");
-	jobScheduler.stopScheduler();
 	pool.end();
 	process.exit(0);
 });
