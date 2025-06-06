@@ -34,6 +34,12 @@ DATABASE_URL=postgresql://username:password@host:port/database
 STRAVA_CLIENT_ID=your_client_id
 STRAVA_CLIENT_SECRET=your_client_secret
 STRAVA_CLUB_ID=your_club_id
+
+# Initial OAuth Tokens (for first-time setup)
+# Get these from the OAuth flow, then the system will auto-refresh them
+STRAVA_INITIAL_ACCESS_TOKEN=your_initial_access_token
+STRAVA_INITIAL_REFRESH_TOKEN=your_initial_refresh_token
+STRAVA_INITIAL_EXPIRES_AT=1234567890
 ```
 
 ## Strava OAuth2 Setup
@@ -61,16 +67,15 @@ STRAVA_CLUB_ID=your_club_id
      -F grant_type=authorization_code
    ```
 
-3. **Initialize tokens in server**: Use the `/admin/init-oauth` endpoint:
+3. **Set environment variables**: Add the tokens to your environment:
    ```bash
-   curl -X POST http://localhost:3001/admin/init-oauth \
-     -H "Content-Type: application/json" \
-     -d '{
-       "access_token": "your_access_token",
-       "refresh_token": "your_refresh_token",
-       "expires_at": 1234567890
-     }'
+   # Add to .env file or Railway environment variables
+   STRAVA_INITIAL_ACCESS_TOKEN=your_access_token
+   STRAVA_INITIAL_REFRESH_TOKEN=your_refresh_token
+   STRAVA_INITIAL_EXPIRES_AT=1234567890
    ```
+
+   The system will automatically initialize tokens from these environment variables on first startup.
 
 ## Local Development Setup
 
@@ -134,7 +139,7 @@ npm run dev
 - **GET** `/admin/sync-stats` - Data synchronization statistics
 
 ### Admin Management
-- **POST** `/admin/init-oauth` - Initialize OAuth tokens (setup only)
+- No admin management endpoints needed - OAuth tokens auto-initialize from environment
 
 ### Data API (Future)
 - **GET** `/api` - API status and information
@@ -240,13 +245,16 @@ DATABASE_URL=postgresql://...
 STRAVA_CLIENT_ID=your_client_id
 STRAVA_CLIENT_SECRET=your_client_secret
 STRAVA_CLUB_ID=your_club_id
+STRAVA_INITIAL_ACCESS_TOKEN=your_initial_access_token
+STRAVA_INITIAL_REFRESH_TOKEN=your_initial_refresh_token
+STRAVA_INITIAL_EXPIRES_AT=1234567890
 ```
 
-### Initial OAuth Setup
-After deployment:
-1. Complete OAuth flow and get tokens
-2. Use the `/admin/init-oauth` endpoint to initialize tokens
-3. Monitor sync progress via `/admin/sync-stats`
+### OAuth Token Setup
+1. Complete OAuth flow locally and get initial tokens
+2. Set the `STRAVA_INITIAL_*` environment variables in Railway dashboard
+3. Deploy - tokens will auto-initialize on first startup
+4. Monitor sync progress via `/admin/sync-stats`
 
 ## Monitoring
 

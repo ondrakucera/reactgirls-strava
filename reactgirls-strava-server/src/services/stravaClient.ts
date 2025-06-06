@@ -79,21 +79,60 @@ class StravaClient {
 				"SELECT access_token, expires_at FROM oauth_tokens ORDER BY created_at DESC LIMIT 1",
 			);
 
+			// If no tokens in database, try to initialize from environment
 			if (result.rows.length === 0) {
-				throw new Error("No OAuth tokens found in database");
+				console.log("🔑 No OAuth tokens found in database, checking environment variables...");
+				await this.initializeFromEnvironment();
+				// Retry the query after initialization
+				const retryResult = await client.query(
+					"SELECT access_token, expires_at FROM oauth_tokens ORDER BY created_at DESC LIMIT 1",
+				);
+				if (retryResult.rows.length === 0) {
+					throw new Error("No OAuth tokens available and environment variables not set");
+				}
+				const { access_token, expires_at } = retryResult.rows[0];
+				return this.checkTokenExpiry(access_token, expires_at);
 			}
 
 			const { access_token, expires_at } = result.rows[0];
-			const now = new Date();
-			const expiresAt = new Date(expires_at);
+			return this.checkTokenExpiry(access_token, expires_at);
+		} finally {
+			client.release();
+		}
+	}
 
-			// If token expires in less than 5 minutes, refresh it
-			if (expiresAt.getTime() - now.getTime() < 5 * 60 * 1000) {
-				console.log("🔄 Token expires soon, refreshing...");
-				return await this.refreshAccessToken();
-			}
+	private checkTokenExpiry(accessToken: string, expiresAt: Date): Promise<string> {
+		const now = new Date();
+		const expiresAtDate = new Date(expiresAt);
 
-			return access_token;
+		// If token expires in less than 5 minutes, refresh it
+		if (expiresAtDate.getTime() - now.getTime() < 5 * 60 * 1000) {
+			console.log("🔄 Token expires soon, refreshing...");
+			return this.refreshAccessToken();
+		}
+
+		return Promise.resolve(accessToken);
+	}
+
+	private async initializeFromEnvironment(): Promise<void> {
+		const initialAccessToken = process.env.STRAVA_INITIAL_ACCESS_TOKEN;
+		const initialRefreshToken = process.env.STRAVA_INITIAL_REFRESH_TOKEN;
+		const initialExpiresAt = process.env.STRAVA_INITIAL_EXPIRES_AT;
+
+		if (!initialAccessToken || !initialRefreshToken || !initialExpiresAt) {
+			console.log("❌ No initial OAuth tokens found in environment variables");
+			console.log("   Required: STRAVA_INITIAL_ACCESS_TOKEN, STRAVA_INITIAL_REFRESH_TOKEN, STRAVA_INITIAL_EXPIRES_AT");
+			throw new Error("No OAuth tokens available in database or environment");
+		}
+
+		console.log("🔑 Initializing OAuth tokens from environment variables...");
+		const client = await pool.connect();
+		try {
+			await client.query(
+				"INSERT INTO oauth_tokens (access_token, refresh_token, expires_at) VALUES ($1, $2, $3)",
+				[initialAccessToken, initialRefreshToken, new Date(parseInt(initialExpiresAt) * 1000)],
+			);
+			console.log("✅ OAuth tokens initialized from environment");
 		} finally {
 			client.release();
 		}
@@ -159,21 +198,6 @@ class StravaClient {
 		} catch (error) {
 			console.error(`❌ Error fetching activities for athlete ${athleteId}:`, error);
 			throw error;
-		}
-	}
-
-	// Initialize tokens from manual OAuth flow
-	async initializeTokens(accessToken: string, refreshToken: string, expiresAt: number): Promise<void> {
-		const client = await pool.connect();
-		try {
-			await client.query("INSERT INTO oauth_tokens (access_token, refresh_token, expires_at) VALUES ($1, $2, $3)", [
-				accessToken,
-				refreshToken,
-				new Date(expiresAt * 1000),
-			]);
-			console.log("✅ Initial OAuth tokens stored successfully");
-		} finally {
-			client.release();
 		}
 	}
 }

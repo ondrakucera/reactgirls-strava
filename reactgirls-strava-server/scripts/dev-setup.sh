@@ -24,6 +24,12 @@ DATABASE_URL=postgresql://developer:devpassword@localhost:5432/reactgirls_strava
 STRAVA_CLIENT_ID=your_strava_client_id_here
 STRAVA_CLIENT_SECRET=your_strava_client_secret_here
 STRAVA_CLUB_ID=your_club_id_here
+
+# Initial OAuth Tokens (optional - for automatic initialization)
+# Get these from OAuth flow, leave empty to use database-only approach
+STRAVA_INITIAL_ACCESS_TOKEN=
+STRAVA_INITIAL_REFRESH_TOKEN=
+STRAVA_INITIAL_EXPIRES_AT=
 EOF
     echo "✅ Created .env file. Please update it with your Strava credentials."
 fi

@@ -4,7 +4,6 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import pool from "./database/connection";
 import createTables from "./database/migrate";
-import StravaClient from "./services/stravaClient";
 import DataSyncService from "./services/dataSyncService";
 
 // Load environment variables
@@ -14,7 +13,6 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Initialize services for admin endpoints
-const stravaClient = new StravaClient();
 const dataSyncService = new DataSyncService();
 
 // Middleware
@@ -85,28 +83,6 @@ app.get("/admin/db-status", async (req, res) => {
 	}
 });
 
-// OAuth initialization endpoint (for initial setup only)
-app.post("/admin/init-oauth", async (req, res) => {
-	try {
-		const { access_token, refresh_token, expires_at } = req.body;
-
-		if (!access_token || !refresh_token || !expires_at) {
-			return res.status(400).json({
-				error: "Missing required fields: access_token, refresh_token, expires_at",
-			});
-		}
-
-		await stravaClient.initializeTokens(access_token, refresh_token, expires_at);
-
-		res.json({
-			message: "OAuth tokens initialized successfully",
-		});
-	} catch (error) {
-		console.error("Error initializing OAuth tokens:", error);
-		res.status(500).json({ error: "Failed to initialize OAuth tokens" });
-	}
-});
-
 // 404 handler
 app.use("*", (req, res) => {
 	res.status(404).json({
@@ -136,6 +112,7 @@ async function startServer() {
 			console.log(`📍 Health check available at http://localhost:${PORT}/health`);
 			console.log(`🔧 Admin panel available at http://localhost:${PORT}/admin`);
 			console.log(`⏰ Data sync managed by Railway cron jobs`);
+			console.log(`🔑 OAuth tokens auto-initialized from environment if needed`);
 			console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
 		});
 	} catch (error) {

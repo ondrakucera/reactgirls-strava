@@ -96,11 +96,11 @@ curl http://localhost:3001/admin/sync-stats
    STRAVA_CLUB_ID=your_club_id
    ```
 3. Get OAuth tokens following the main README
-4. Initialize tokens:
-   ```bash
-   curl -X POST http://localhost:3001/admin/init-oauth \
-     -H "Content-Type: application/json" \
-     -d '{"access_token":"...","refresh_token":"...","expires_at":123456789}'
+4. Add initial tokens to `.env`:
+   ```
+   STRAVA_INITIAL_ACCESS_TOKEN=your_access_token
+   STRAVA_INITIAL_REFRESH_TOKEN=your_refresh_token
+   STRAVA_INITIAL_EXPIRES_AT=1234567890
    ```
 5. Test sync locally:
    ```bash
