@@ -17,7 +17,12 @@ PORT=3001
 NODE_ENV=development
 
 # Local PostgreSQL Database (Docker Compose)
-DATABASE_URL=postgresql://developer:devpassword@localhost:5432/reactgirls_strava_dev
+# Using explicit parameters instead of connection string to avoid parsing issues
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=reactgirls_strava_dev
+DB_USER=developer
+DB_PASSWORD=devpassword
 
 # Strava API Credentials
 # Replace these with your actual Strava app credentials
